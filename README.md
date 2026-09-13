@@ -54,6 +54,7 @@ You (feature + "done" rule) → Plan → Build → Verify ──pass──→ Re
 
 ## Files
 
+- [`examples/`](examples/): example `CLAUDE.md`, `SPEC.md`, hooks, and subagents to copy into a project
 - [`docs/summary.html`](docs/summary.html): the one-page visual summary
 - [`docs/sources.md`](docs/sources.md): where each claim comes from
 - [`docs/open-questions.md`](docs/open-questions.md): things to check and improve

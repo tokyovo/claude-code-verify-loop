@@ -17,7 +17,9 @@ Things to check and improve in the guide.
 
 ## To add
 
-- [ ] Example `CLAUDE.md`
-- [ ] Example Stop hook script
-- [ ] Example `verify-app` and reviewer subagent files
-- [ ] Example `SPEC.md` template
+- [x] Example `CLAUDE.md`
+- [x] Example Stop hook script
+- [x] Example `verify-app` and reviewer subagent files
+- [x] Example `SPEC.md` template
+- [ ] Check if a Stop hook and `/goal` together cause double blocking. Pick one if so.
+- [ ] Check the Stop hook JSON option (`"decision": "block"`) and `stop_hook_active`. The examples use exit code 2, which the docs confirm.
