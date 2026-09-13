@@ -39,22 +39,29 @@ code{font:13px var(--mono);background:var(--code);padding:1px 5px;border-radius:
 .loop text{font-family:var(--body)}
 .cap{font-size:13px;color:var(--muted);margin-top:10px}
 
-/* parts */
+/* cards */
 .parts{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:1px;background:var(--rule);border:1px solid var(--rule);border-radius:10px;overflow:hidden}
 .part{background:var(--panel);padding:16px 18px;display:grid;gap:6px;align-content:start}
 .part h3{margin:0;font:600 15px var(--body)}
 .part p{font-size:14px;color:var(--muted)}
+.part.later{background:var(--ground)}
+.part.later h3{color:var(--muted)}
 .tag{font:500 11px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
 
 /* steps */
 .cols{display:grid;grid-template-columns:1.25fr 1fr;gap:28px}
 @media (max-width:760px){.cols{grid-template-columns:1fr}}
+.steps-col{display:grid;gap:20px;align-content:start}
 ol.steps{margin:10px 0 0;padding:0;list-style:none;counter-reset:s;display:grid;gap:9px}
 ol.steps li{counter-increment:s;display:grid;grid-template-columns:26px 1fr;gap:10px;font-size:14px}
 ol.steps li::before{content:counter(s);font:600 13px/24px var(--mono);text-align:center;width:24px;height:24px;border-radius:50%;background:var(--accent-soft);color:var(--accent)}
 .warn{background:var(--fail-soft);border-radius:10px;padding:16px 18px;display:grid;gap:8px;align-content:start}
 .warn h2{color:var(--fail)}
 .warn ul{margin:0;padding-left:18px;display:grid;gap:6px;font-size:14px}
+
+/* later */
+.laterlist{margin:0;padding-left:18px;display:grid;gap:6px;font-size:14px;color:var(--muted)}
+.laterlist b{color:var(--ink)}
 footer{border-top:1px solid var(--rule);padding-top:14px;font-size:12.5px;color:var(--muted);display:grid;gap:4px}
 footer a{color:var(--accent)}
 </style>
@@ -62,13 +69,13 @@ footer a{color:var(--accent)}
 <div class="wrap">
   <header style="display:grid;gap:14px">
     <div class="eyebrow">Research summary · September 2026</div>
-    <h1>How Claude Code builds, checks, and fixes its own work</h1>
-    <p class="lead">The secret is not a smarter model. It is <b>a check Claude can run that says pass or fail</b>, plus <b>a rule that stops Claude from finishing until the check passes</b>. The human writes what the feature should do. Claude plans, builds, tests, fixes, and opens a PR.</p>
+    <h1>How Claude Code plans, builds, checks, and fixes its own work</h1>
+    <p class="lead">The secret is not a smarter model. It is <b>a check Claude can run that says pass or fail</b>, plus <b>a rule that stops Claude from finishing until the check passes</b>. Each step also writes <b>a file the next step reads</b>, and a person reviews each file. Claude plans, builds, tests, fixes, and opens a PR.</p>
     <p class="quote">"Give Claude a way to verify its work. If Claude has that feedback loop, it will 2–3x the quality of the final result."<cite>Boris Cherny, creator of Claude Code (his estimate, not a benchmark)</cite></p>
   </header>
 
   <section class="loop" aria-label="The loop">
-    <svg viewBox="0 30 900 172" role="img" aria-label="Feature request, plan, build, verify gate; fail goes back to build; pass goes to review and PR">
+    <svg viewBox="0 30 900 172" role="img" aria-label="You and Claude write INTENT.md and SPEC.md, then PLAN.md in plan mode, then build, then a verify gate; fail goes back to build; pass goes to review and PR">
       <defs>
         <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="var(--muted)"/></marker>
         <marker id="arf" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="var(--fail)"/></marker>
@@ -76,12 +83,12 @@ footer a{color:var(--accent)}
       </defs>
       <g font-size="14" fill="var(--ink)">
         <rect x="8" y="50" width="130" height="62" rx="8" fill="var(--ground)" stroke="var(--rule)"/>
-        <text x="73" y="77" text-anchor="middle" font-weight="600">You</text>
-        <text x="73" y="96" text-anchor="middle" font-size="12" fill="var(--muted)">feature + "done" rule</text>
+        <text x="73" y="77" text-anchor="middle" font-weight="600">You + Claude</text>
+        <text x="73" y="96" text-anchor="middle" font-size="12" fill="var(--muted)">INTENT · SPEC</text>
 
         <rect x="178" y="50" width="130" height="62" rx="8" fill="var(--panel)" stroke="var(--rule)"/>
         <text x="243" y="77" text-anchor="middle" font-weight="600">Plan</text>
-        <text x="243" y="96" text-anchor="middle" font-size="12" fill="var(--muted)">spec, plan mode</text>
+        <text x="243" y="96" text-anchor="middle" font-size="12" fill="var(--muted)">PLAN.md, plan mode</text>
 
         <rect x="348" y="50" width="130" height="62" rx="8" fill="var(--panel)" stroke="var(--rule)"/>
         <text x="413" y="77" text-anchor="middle" font-weight="600">Build</text>
@@ -93,7 +100,7 @@ footer a{color:var(--accent)}
 
         <rect x="680" y="50" width="100" height="62" rx="8" fill="var(--panel)" stroke="var(--rule)"/>
         <text x="730" y="77" text-anchor="middle" font-weight="600">Review</text>
-        <text x="730" y="96" text-anchor="middle" font-size="12" fill="var(--muted)">2nd agent</text>
+        <text x="730" y="96" text-anchor="middle" font-size="12" fill="var(--muted)">REVIEW.md</text>
 
         <rect x="812" y="50" width="80" height="62" rx="8" fill="var(--accent)" stroke="var(--accent)"/>
         <text x="852" y="87" text-anchor="middle" font-weight="600" fill="var(--panel)">PR</text>
@@ -111,25 +118,40 @@ footer a{color:var(--accent)}
       <text x="588" y="189" font-size="12" fill="var(--fail)" text-anchor="middle">problems found → fix</text>
       <text x="658" y="72" font-size="12" fill="var(--accent)" text-anchor="middle">pass</text>
     </svg>
-    <p class="cap"><code>/goal</code> and a Stop hook keep Claude inside this loop. Claude cannot finish until the Verify step passes. After the PR opens, <code>/loop</code> fixes failed CI and review comments until the PR is merged.</p>
+    <p class="cap">You review and commit <code>INTENT.md</code>, <code>SPEC.md</code>, and <code>PLAN.md</code> in <code>changes/&lt;name&gt;/</code>. Then <code>/goal</code> and a Stop hook keep Claude inside the build loop. Claude cannot finish until the Verify step passes. After the PR opens, <code>/loop</code> fixes failed CI and review comments until the PR is merged.</p>
   </section>
 
   <section style="display:grid;gap:12px">
-    <h2>The six parts of the setup</h2>
+    <h2>The six stages of Anthropic's AI-native SDLC playbook</h2>
     <div class="parts">
-      <div class="part"><span class="tag">Check · most important</span><h3>A pass/fail check</h3><p>Tests, typecheck, lint, or build exit code. Put the exact commands in <code>CLAUDE.md</code>. Ask Claude to show the command and its output as evidence.</p></div>
+      <div class="part"><span class="tag">1 · Plan</span><h3><code>INTENT.md</code></h3><p>Claude interviews you. The file holds the problem, the outcome, the affected users and systems, the constraints, and open questions.</p></div>
+      <div class="part"><span class="tag">2 · Design</span><h3><code>SPEC.md</code></h3><p>Claude turns the intent into acceptance criteria and follows your team's skills. You check that the spec solves the problem.</p></div>
+      <div class="part"><span class="tag">3 · Build</span><h3><code>PLAN.md</code>, then code</h3><p>Plan mode. Change the plan until a person who never saw the chat could build from it. Then <code>/goal</code> builds it.</p></div>
+      <div class="part"><span class="tag">4 · Test</span><h3>Claude checks itself first</h3><p>Stop hook, <code>verify-app</code>, a hook that blocks edits to old tests, and evals that test your setup.</p></div>
+      <div class="part"><span class="tag">5 · Deploy</span><h3>Review, then merge</h3><p>A reviewer that follows <code>REVIEW.md</code>, then <code>/loop</code> on the PR. A person merges. This setup does not deploy.</p></div>
+      <div class="part later"><span class="tag">6 · Maintain · not in this setup yet</span><h3>Alerts start Claude</h3><p>A script sees a problem in production and starts Claude. Claude writes an <code>INTENT.md</code>, and the steps start again.</p></div>
+    </div>
+    <p class="cap">Each stage commits a file the next stage reads. The commits show who asked for what, what Claude built, and who approved it.</p>
+  </section>
+
+  <section style="display:grid;gap:12px">
+    <h2>The eight parts of the setup</h2>
+    <div class="parts">
+      <div class="part"><span class="tag">Steps</span><h3>One file per step</h3><p><code>INTENT.md</code>, <code>SPEC.md</code>, and <code>PLAN.md</code> in <code>changes/&lt;name&gt;/</code>. Each change has its own folder, so parallel sessions do not edit the same file.</p></div>
+      <div class="part"><span class="tag">Rules</span><h3>Team rules as skills</h3><p>A <code>SKILL.md</code> in <code>.claude/skills/&lt;name&gt;/</code>, such as security rules for API code. When a rule changes, change the skill.</p></div>
+      <div class="part"><span class="tag">Check · most important</span><h3>A pass/fail check</h3><p>Tests, typecheck, lint, or build exit code. Put the exact commands in <code>CLAUDE.md</code>, and keep it under one page. Ask Claude to show the command and its output.</p></div>
       <div class="part"><span class="tag">Check</span><h3>Test the real app</h3><p>Unit tests are not enough. Claude starts the app and clicks through it with the Chrome extension or Playwright (browser automation). <code>/run-skill-generator</code> saves how to start your app as a skill.</p></div>
-      <div class="part"><span class="tag">Gate</span><h3>Do not stop until it passes</h3><p><code>/goal</code> for the feature: a small model checks your condition after each turn. Plus a Stop hook (a script that runs when Claude tries to finish) that runs the real tests. Keep both.</p></div>
-      <div class="part"><span class="tag">Second opinion</span><h3>A separate reviewer</h3><p>Agents rate their own work too kindly. Add a <code>verify-app</code> subagent and a reviewer subagent in <code>.claude/agents/</code>, or run <code>/code-review</code>. Tell it to report real bugs only.</p></div>
+      <div class="part"><span class="tag">Gate</span><h3>Do not stop until it passes</h3><p><code>/goal</code> for the change, plus a Stop hook (a script that runs when Claude tries to finish) that runs the real tests. A PreToolUse hook blocks edits to tests that existed before the branch.</p></div>
+      <div class="part"><span class="tag">Second opinion</span><h3>A separate reviewer</h3><p>Agents rate their own work too kindly. Add <code>verify-app</code> and <code>reviewer</code> subagents in <code>.claude/agents/</code>. <code>REVIEW.md</code> says what counts as Important and limits nits to five.</p></div>
       <div class="part"><span class="tag">Speed</span><h3>No permission prompts</h3><p>Auto mode (a safety classifier approves routine actions): <code>claude --permission-mode auto</code>. Add <code>/sandbox</code> to limit file and network access.</p></div>
-      <div class="part"><span class="tag">Scale</span><h3>Many sessions at once</h3><p>Boris runs 5 local sessions in separate git worktrees plus 5–10 web sessions. <code>/loop</code> fixes failed CI and review comments. Routines run jobs on a schedule or GitHub event.</p></div>
+      <div class="part"><span class="tag">Scale</span><h3>Many sessions at once</h3><p><code>claude --worktree &lt;name&gt;</code> for each change. Start with 2–3 sessions, and add more only while you can review every PR. <code>/loop</code> looks after each PR.</p></div>
     </div>
   </section>
 
   <section style="display:grid;gap:12px">
     <h2>One kind of loop for each step</h2>
     <div class="parts">
-      <div class="part"><span class="tag">1 · Turn-based</span><h3>Write the spec</h3><p>Claude interviews you, one question at a time, and writes <code>SPEC.md</code>. You answer each turn.</p></div>
+      <div class="part"><span class="tag">1 · Turn-based</span><h3>Write the three files</h3><p>Claude interviews you and writes <code>INTENT.md</code> and <code>SPEC.md</code>. In plan mode it writes <code>PLAN.md</code>. You answer each turn, then review and commit each file.</p></div>
       <div class="part"><span class="tag">2 · Goal-based</span><h3>Build it: <code>/goal</code></h3><p>Runs turn after turn until a model confirms the condition. The model only reads the conversation, so Claude must print the evidence. Ends when the PR is open.</p></div>
       <div class="part"><span class="tag">3 · Time-based</span><h3>Look after the PR: <code>/loop</code></h3><p>Waits, then checks CI and review comments, fixes, and pushes. <code>.claude/loop.md</code> keeps it on this PR only. Stops when the PR is merged.</p></div>
     </div>
@@ -137,20 +159,31 @@ footer a{color:var(--accent)}
   </section>
 
   <div class="cols">
-    <section>
-      <h2>Start here: a setup you can copy</h2>
-      <ol class="steps">
-        <li><span>Write a short <code>CLAUDE.md</code> with your test, lint, and typecheck commands. Add a rule each time Claude makes a mistake.</span></li>
-        <li><span>Add a <b>PostToolUse hook</b> on <code>Edit|Write</code> that runs your formatter.</span></li>
-        <li><span>Run <code>/run-skill-generator</code> so Claude can start and use your app.</span></li>
-        <li><span>Add two subagents: <code>verify-app</code> (end-to-end test steps) and a reviewer.</span></li>
-        <li><span>Turn on auto mode and <code>/sandbox</code>.</span></li>
-        <li><span>For each feature: ask Claude to interview you and write <code>SPEC.md</code> with acceptance criteria.</span></li>
-        <li><span>In a new session, run <code>/goal</code> with the condition from <code>examples/README.md</code>. Claude builds, checks, reviews, and opens a PR.</span></li>
-        <li><span>In another new session, run <code>/loop</code>. It fixes failed CI and review comments until the PR is merged.</span></li>
-        <li><span>You review the evidence and merge the PR.</span></li>
-      </ol>
-    </section>
+    <div class="steps-col">
+      <section>
+        <h2>Start here: set up once for each project</h2>
+        <ol class="steps">
+          <li><span>Write a short <code>CLAUDE.md</code> with your build, test, lint, and typecheck commands. Keep it under one page. When Claude makes the same mistake twice, add a rule.</span></li>
+          <li><span>Add three hooks: format each edited file (<b>PostToolUse</b>), block edits to old tests (<b>PreToolUse</b>), and run the checks before Claude finishes (<b>Stop</b>).</span></li>
+          <li><span>Run <code>/run-skill-generator</code> so Claude can start and use your app.</span></li>
+          <li><span>Add two subagents: <code>verify-app</code> (end-to-end test steps) and <code>reviewer</code>. Write <code>REVIEW.md</code>.</span></li>
+          <li><span>Write your team's rules as skills in <code>.claude/skills/</code>.</span></li>
+          <li><span>Turn on auto mode and <code>/sandbox</code>.</span></li>
+          <li><span>Collect real past tasks as evals, 20–50 over time. Run them after each change to <code>CLAUDE.md</code>, a skill, a hook, or a subagent.</span></li>
+        </ol>
+      </section>
+      <section>
+        <h2>For each change</h2>
+        <ol class="steps">
+          <li><span>Claude interviews you and writes <code>INTENT.md</code>. You review and commit it.</span></li>
+          <li><span>Claude writes <code>SPEC.md</code> from <code>INTENT.md</code>. You check it solves the problem, and commit it.</span></li>
+          <li><span>In a new session in plan mode, Claude writes <code>PLAN.md</code>. You approve and commit it.</span></li>
+          <li><span>In a new session, run <code>/goal</code> with the condition from <code>examples/README.md</code>. Claude builds, checks, reviews, and opens a PR.</span></li>
+          <li><span>In another new session, run <code>/loop</code>. It fixes failed CI and review comments until the PR is merged.</span></li>
+          <li><span>You review the evidence and merge the PR.</span></li>
+        </ol>
+      </section>
+    </div>
     <aside class="warn">
       <h2>Watch out</h2>
       <ul>
@@ -158,15 +191,30 @@ footer a{color:var(--accent)}
         <li><b>Always set a limit</b> (max turns or iterations). Loops can run for hours. In <code>/goal</code>, "stop after 30 turns" is judged by a model, not enforced.</li>
         <li><b>The <code>/goal</code> judge cannot see files.</b> It only reads the conversation. Ask Claude to print the evidence.</li>
         <li><b>Claude cannot start <code>/verify</code> on its own.</b> Use the <code>verify-app</code> subagent inside <code>/goal</code> and <code>/loop</code>.</li>
-        <li><b>Cost grows fast.</b> Anthropic's 3-agent app harness took 6 h and $200, against 20 min and $9 for one agent. The result was much better.</li>
+        <li><b>The test hook only covers file edit tools.</b> Claude could still change a test with a shell command, or change the hook. <code>REVIEW.md</code> tells the reviewer to check for both.</li>
+        <li><b><code>/code-review</code> does not read <code>REVIEW.md</code>.</b> Only the <code>reviewer</code> subagent and the managed Code Review service read it.</li>
+        <li><b>Add sessions only while you can review them.</b> Start with 2–3.</li>
+        <li><b>Keep approval prompts out of the build.</b> A hook that waits for a person belongs at a deploy gate.</li>
+        <li><b>Cost grows fast.</b> Anthropic's 3-agent app harness took 6 h and $200, against 20 min and $9 for one agent. The result was much better. Each <code>/loop</code> check and each eval task also costs tokens.</li>
         <li><b>A reviewer can over-push.</b> If it reports style nits, Claude adds code it does not need.</li>
         <li>Boris does <b>not</b> skip permissions. He uses auto mode and pre-approved safe commands.</li>
       </ul>
     </aside>
   </div>
 
+  <section style="display:grid;gap:12px">
+    <h2>Later: team and enterprise parts</h2>
+    <ul class="laterlist">
+      <li><b>Deploy gates.</b> A hook blocks a production deploy until a person approves it. First, make rollback one command that the team tests often.</li>
+      <li><b>Claude in CI.</b> <code>claude -p</code> runs Claude once without a session, for example to explain a failed build.</li>
+      <li><b>Code Review service.</b> Reviews every PR on chosen GitHub repos and reads <code>REVIEW.md</code>. Research preview for Team and Enterprise plans.</li>
+      <li><b>Maintain stage, Claude Tag, and Claude Security.</b> Alerts, Slack incidents, and scheduled security scans start Claude. Larger findings become an <code>INTENT.md</code>.</li>
+      <li><b>Managed settings.</b> An organization sets rules that no one can override on their own machine.</li>
+    </ul>
+  </section>
+
   <footer>
-    <p>Sources: <a href="https://claude.com/blog/getting-started-with-loops">Getting started with loops</a> · <a href="https://code.claude.com/docs/en/best-practices">Claude Code best practices</a> · <a href="https://code.claude.com/docs/en/goal">/goal docs</a> · <a href="https://code.claude.com/docs/en/hooks-guide">Hooks guide</a> · <a href="https://code.claude.com/docs/en/scheduled-tasks">Scheduled tasks</a> · <a href="https://www.anthropic.com/engineering/harness-design-long-running-apps">Anthropic: harness design for long-running apps (Mar 2026)</a> · <a href="https://x.com/bcherny/status/2007179850139000872">Boris Cherny's setup thread (Jan 2026)</a> · <a href="https://www.theneuron.ai/explainer-articles/claude-code-creators-boris-cherny-and-cat-wu-explain-how-to-use-agent-loops/">Boris Cherny &amp; Cat Wu on agent loops (Jun 2026)</a> · <a href="https://github.com/anthropics/claude-code/blob/main/plugins/ralph-wiggum/README.md">Ralph Wiggum loop plugin</a></p>
-    <p>Not fully confirmed: the "2–3x" figure is an estimate. Boris's April 2026 <code>/go</code> skill (test → simplify → PR) comes from a secondary summary only.</p>
+    <p>Sources: <a href="https://claude.com/blog/the-ai-native-sdlc-playbook">The AI-native SDLC playbook (Aug 2026)</a> · <a href="https://claude.com/blog/getting-started-with-loops">Getting started with loops</a> · <a href="https://code.claude.com/docs/en/best-practices">Claude Code best practices</a> · <a href="https://code.claude.com/docs/en/goal">/goal docs</a> · <a href="https://code.claude.com/docs/en/hooks-guide">Hooks guide</a> · <a href="https://code.claude.com/docs/en/code-review">Code Review docs</a> · <a href="https://code.claude.com/docs/en/scheduled-tasks">Scheduled tasks</a> · <a href="https://www.anthropic.com/engineering/harness-design-long-running-apps">Anthropic: harness design for long-running apps (Mar 2026)</a> · <a href="https://x.com/bcherny/status/2007179850139000872">Boris Cherny's setup thread (Jan 2026)</a> · <a href="https://www.theneuron.ai/explainer-articles/claude-code-creators-boris-cherny-and-cat-wu-explain-how-to-use-agent-loops/">Boris Cherny &amp; Cat Wu on agent loops (Jun 2026)</a> · <a href="https://github.com/anthropics/claude-code/blob/main/plugins/ralph-wiggum/README.md">Ralph Wiggum loop plugin</a></p>
+    <p>Not fully confirmed: the "2–3x" figure is an estimate. Boris's April 2026 <code>/go</code> skill (test → simplify → PR) comes from a secondary summary only. Some playbook details were read through a summarizing tool. The <code>changes/&lt;name&gt;/</code> folder and the eval pass count are this guide's own choices.</p>
   </footer>
 </div>

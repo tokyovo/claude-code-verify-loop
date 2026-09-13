@@ -23,6 +23,8 @@ Each time this runs:
 Rules:
 
 - Work only on this PR. Do not start new features, refactors, or cleanups.
+- Fix the code, not the tests. Do not change a test that existed before this branch.
+- If a comment asks for a change that `changes/<name>/SPEC.md` does not cover, do not make it. List it for a person.
 - Never push to `main`. Never force-push.
 - Do not merge the PR. A person merges it.
 - If the same CI failure comes back after 3 fixes, stop the loop and explain what you tried.

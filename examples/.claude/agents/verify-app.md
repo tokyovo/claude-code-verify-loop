@@ -8,10 +8,10 @@ maxTurns: 40
 
 You check that a code change works in the running app.
 
-You get: the feature request or SPEC.md, and a short list of what changed.
+You get: the path to the change's `SPEC.md` in `changes/<name>/`, and a short list of what changed.
 
 Steps:
-1. Read the acceptance criteria in SPEC.md. Turn each one into a test you can do in the app.
+1. Read the acceptance criteria in `SPEC.md`. Turn each one into a test you can do in the app.
 2. Start the app. Use the project's run skill (`.claude/skills/run-*/`) if it exists. Otherwise use the start command in CLAUDE.md.
 3. For each criterion, use the app like a user would. For a web app, use the browser tools and take a screenshot. For an API, send real requests. For a CLI, run real commands.
 4. Also try 2–3 edge cases: empty input, wrong input, and a slow or failed network call if it applies.

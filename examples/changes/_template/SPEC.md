@@ -1,10 +1,12 @@
-# SPEC: <feature name>
+# SPEC: <change name>
 
 <!--
-Template. To fill it in, start Claude and say:
-"Interview me about <feature>. Ask one question at a time. Then write SPEC.md using this template."
-Then start a NEW session to build it.
+Template for stage 2 (Design). Claude writes this file from the accepted INTENT.md. Start Claude and say:
+"Read changes/<name>/INTENT.md. Write changes/<name>/SPEC.md from the template. Follow the project skills that apply. Ask me when INTENT.md does not answer a question."
+Check that the spec solves the problem in INTENT.md. Then commit it.
 -->
+
+- Intent: [INTENT.md](INTENT.md)
 
 ## Goal
 
@@ -25,6 +27,10 @@ Each line must be something a person or a test can check as pass or fail.
 ## Edge cases
 
 - <Empty input, wrong input, slow network, no permission, ...>
+
+## Open questions from INTENT.md
+
+- <Question> — <the answer, or "carried forward" and the reason>
 
 ## How to verify
 
