@@ -111,7 +111,7 @@ footer a{color:var(--accent)}
       <text x="588" y="189" font-size="12" fill="var(--fail)" text-anchor="middle">problems found → fix</text>
       <text x="658" y="72" font-size="12" fill="var(--accent)" text-anchor="middle">pass</text>
     </svg>
-    <p class="cap">A Stop hook or <code>/goal</code> keeps Claude inside this loop. Claude cannot finish until the Verify step passes.</p>
+    <p class="cap"><code>/goal</code> and a Stop hook keep Claude inside this loop. Claude cannot finish until the Verify step passes. After the PR opens, <code>/loop</code> fixes failed CI and review comments until the PR is merged.</p>
   </section>
 
   <section style="display:grid;gap:12px">
@@ -119,11 +119,21 @@ footer a{color:var(--accent)}
     <div class="parts">
       <div class="part"><span class="tag">Check · most important</span><h3>A pass/fail check</h3><p>Tests, typecheck, lint, or build exit code. Put the exact commands in <code>CLAUDE.md</code>. Ask Claude to show the command and its output as evidence.</p></div>
       <div class="part"><span class="tag">Check</span><h3>Test the real app</h3><p>Unit tests are not enough. Claude starts the app and clicks through it with the Chrome extension or Playwright (browser automation). <code>/run-skill-generator</code> saves how to start your app as a skill.</p></div>
-      <div class="part"><span class="tag">Gate</span><h3>Do not stop until it passes</h3><p><code>/goal all tests pass and lint is clean, or stop after 20 turns</code>. Or a Stop hook (a script that runs when Claude tries to finish) that blocks while tests fail.</p></div>
+      <div class="part"><span class="tag">Gate</span><h3>Do not stop until it passes</h3><p><code>/goal</code> for the feature: a small model checks your condition after each turn. Plus a Stop hook (a script that runs when Claude tries to finish) that runs the real tests. Keep both.</p></div>
       <div class="part"><span class="tag">Second opinion</span><h3>A separate reviewer</h3><p>Agents rate their own work too kindly. Add a <code>verify-app</code> subagent and a reviewer subagent in <code>.claude/agents/</code>, or run <code>/code-review</code>. Tell it to report real bugs only.</p></div>
       <div class="part"><span class="tag">Speed</span><h3>No permission prompts</h3><p>Auto mode (a safety classifier approves routine actions): <code>claude --permission-mode auto</code>. Add <code>/sandbox</code> to limit file and network access.</p></div>
       <div class="part"><span class="tag">Scale</span><h3>Many sessions at once</h3><p>Boris runs 5 local sessions in separate git worktrees plus 5–10 web sessions. <code>/loop</code> fixes failed CI and review comments. Routines run jobs on a schedule or GitHub event.</p></div>
     </div>
+  </section>
+
+  <section style="display:grid;gap:12px">
+    <h2>One kind of loop for each step</h2>
+    <div class="parts">
+      <div class="part"><span class="tag">1 · Turn-based</span><h3>Write the spec</h3><p>Claude interviews you, one question at a time, and writes <code>SPEC.md</code>. You answer each turn.</p></div>
+      <div class="part"><span class="tag">2 · Goal-based</span><h3>Build it: <code>/goal</code></h3><p>Runs turn after turn until a model confirms the condition. The model only reads the conversation, so Claude must print the evidence. Ends when the PR is open.</p></div>
+      <div class="part"><span class="tag">3 · Time-based</span><h3>Look after the PR: <code>/loop</code></h3><p>Waits, then checks CI and review comments, fixes, and pushes. <code>.claude/loop.md</code> keeps it on this PR only. Stops when the PR is merged.</p></div>
+    </div>
+    <p class="cap">Later: <code>/schedule</code> with <code>/goal</code> can run recurring work in the cloud. Not part of this setup yet.</p>
   </section>
 
   <div class="cols">
@@ -135,15 +145,19 @@ footer a{color:var(--accent)}
         <li><span>Run <code>/run-skill-generator</code> so Claude can start and use your app.</span></li>
         <li><span>Add two subagents: <code>verify-app</code> (end-to-end test steps) and a reviewer.</span></li>
         <li><span>Turn on auto mode and <code>/sandbox</code>.</span></li>
-        <li><span>For each feature: ask Claude to interview you and write <code>SPEC.md</code> with acceptance criteria. Then, in a fresh session, run <code>/goal &lt;criteria&gt; verified, tests pass</code>.</span></li>
-        <li><span>You review the evidence and the PR. Nothing else.</span></li>
+        <li><span>For each feature: ask Claude to interview you and write <code>SPEC.md</code> with acceptance criteria.</span></li>
+        <li><span>In a new session, run <code>/goal</code> with the condition from <code>examples/README.md</code>. Claude builds, checks, reviews, and opens a PR.</span></li>
+        <li><span>In another new session, run <code>/loop</code>. It fixes failed CI and review comments until the PR is merged.</span></li>
+        <li><span>You review the evidence and merge the PR.</span></li>
       </ol>
     </section>
     <aside class="warn">
       <h2>Watch out</h2>
       <ul>
         <li><b>No check, no loop.</b> Without a real test, Claude "passes" by saying it is done.</li>
-        <li><b>Always set a limit</b> (max turns or iterations). Loops can run for hours.</li>
+        <li><b>Always set a limit</b> (max turns or iterations). Loops can run for hours. In <code>/goal</code>, "stop after 30 turns" is judged by a model, not enforced.</li>
+        <li><b>The <code>/goal</code> judge cannot see files.</b> It only reads the conversation. Ask Claude to print the evidence.</li>
+        <li><b>Claude cannot start <code>/verify</code> on its own.</b> Use the <code>verify-app</code> subagent inside <code>/goal</code> and <code>/loop</code>.</li>
         <li><b>Cost grows fast.</b> Anthropic's 3-agent app harness took 6 h and $200, against 20 min and $9 for one agent. The result was much better.</li>
         <li><b>A reviewer can over-push.</b> If it reports style nits, Claude adds code it does not need.</li>
         <li>Boris does <b>not</b> skip permissions. He uses auto mode and pre-approved safe commands.</li>
@@ -152,7 +166,7 @@ footer a{color:var(--accent)}
   </div>
 
   <footer>
-    <p>Sources: <a href="https://code.claude.com/docs/en/best-practices">Claude Code best practices</a> · <a href="https://code.claude.com/docs/en/goal">/goal docs</a> · <a href="https://code.claude.com/docs/en/hooks-guide">Hooks guide</a> · <a href="https://code.claude.com/docs/en/scheduled-tasks">Scheduled tasks</a> · <a href="https://www.anthropic.com/engineering/harness-design-long-running-apps">Anthropic: harness design for long-running apps (Mar 2026)</a> · <a href="https://x.com/bcherny/status/2007179850139000872">Boris Cherny's setup thread (Jan 2026)</a> · <a href="https://www.theneuron.ai/explainer-articles/claude-code-creators-boris-cherny-and-cat-wu-explain-how-to-use-agent-loops/">Boris Cherny &amp; Cat Wu on agent loops (Jun 2026)</a> · <a href="https://github.com/anthropics/claude-code/blob/main/plugins/ralph-wiggum/README.md">Ralph Wiggum loop plugin</a></p>
+    <p>Sources: <a href="https://claude.com/blog/getting-started-with-loops">Getting started with loops</a> · <a href="https://code.claude.com/docs/en/best-practices">Claude Code best practices</a> · <a href="https://code.claude.com/docs/en/goal">/goal docs</a> · <a href="https://code.claude.com/docs/en/hooks-guide">Hooks guide</a> · <a href="https://code.claude.com/docs/en/scheduled-tasks">Scheduled tasks</a> · <a href="https://www.anthropic.com/engineering/harness-design-long-running-apps">Anthropic: harness design for long-running apps (Mar 2026)</a> · <a href="https://x.com/bcherny/status/2007179850139000872">Boris Cherny's setup thread (Jan 2026)</a> · <a href="https://www.theneuron.ai/explainer-articles/claude-code-creators-boris-cherny-and-cat-wu-explain-how-to-use-agent-loops/">Boris Cherny &amp; Cat Wu on agent loops (Jun 2026)</a> · <a href="https://github.com/anthropics/claude-code/blob/main/plugins/ralph-wiggum/README.md">Ralph Wiggum loop plugin</a></p>
     <p>Not fully confirmed: the "2–3x" figure is an estimate. Boris's April 2026 <code>/go</code> skill (test → simplify → PR) comes from a secondary summary only.</p>
   </footer>
 </div>
