@@ -1,0 +1,158 @@
+<title>Self-Checking Claude Code</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --ground:#F3F6F5; --panel:#FFFFFF; --ink:#18222C; --muted:#56636E; --rule:#D6DEDD;
+  --accent:#0E6B66; --accent-soft:#DDEFEC; --fail:#B2432F; --fail-soft:#F6E3DE; --code:#EAF0EF;
+  --display:"Bricolage Grotesque","Helvetica Neue",Arial,sans-serif;
+  --body:"IBM Plex Sans","Helvetica Neue",Arial,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ground:#11171A; --panel:#182126; --ink:#E4EBEC; --muted:#9AA8AE; --rule:#2B3840;
+    --accent:#52B8AF; --accent-soft:#16332F; --fail:#E27B63; --fail-soft:#3A221D; --code:#1F2A30;
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#11171A; --panel:#182126; --ink:#E4EBEC; --muted:#9AA8AE; --rule:#2B3840;
+  --accent:#52B8AF; --accent-soft:#16332F; --fail:#E27B63; --fail-soft:#3A221D; --code:#1F2A30;
+}
+*{box-sizing:border-box}
+body{background:var(--ground);color:var(--ink);font:15px/1.55 var(--body);padding:0 20px}
+.wrap{max-width:960px;margin:0 auto;padding-block:36px 48px;display:grid;gap:28px}
+h1,h2{font-family:var(--display);text-wrap:balance;margin:0}
+h1{font-size:clamp(28px,4.4vw,42px);font-weight:800;line-height:1.08;letter-spacing:-.01em}
+h2{font-size:19px;font-weight:600}
+p{margin:0}
+.eyebrow{font:500 12px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.lead{font-size:17px;max-width:62ch;color:var(--ink)}
+.lead b{color:var(--accent)}
+.quote{border-left:3px solid var(--accent);padding:4px 0 4px 14px;color:var(--muted);max-width:62ch}
+.quote cite{display:block;font:12px var(--mono);font-style:normal;margin-top:4px}
+code{font:13px var(--mono);background:var(--code);padding:1px 5px;border-radius:4px;overflow-wrap:anywhere}
+
+/* loop */
+.loop{background:var(--panel);border:1px solid var(--rule);border-radius:10px;padding:20px;overflow-x:auto}
+.loop svg{display:block;width:100%;min-width:640px;height:auto}
+.loop text{font-family:var(--body)}
+.cap{font-size:13px;color:var(--muted);margin-top:10px}
+
+/* parts */
+.parts{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:1px;background:var(--rule);border:1px solid var(--rule);border-radius:10px;overflow:hidden}
+.part{background:var(--panel);padding:16px 18px;display:grid;gap:6px;align-content:start}
+.part h3{margin:0;font:600 15px var(--body)}
+.part p{font-size:14px;color:var(--muted)}
+.tag{font:500 11px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+
+/* steps */
+.cols{display:grid;grid-template-columns:1.25fr 1fr;gap:28px}
+@media (max-width:760px){.cols{grid-template-columns:1fr}}
+ol.steps{margin:10px 0 0;padding:0;list-style:none;counter-reset:s;display:grid;gap:9px}
+ol.steps li{counter-increment:s;display:grid;grid-template-columns:26px 1fr;gap:10px;font-size:14px}
+ol.steps li::before{content:counter(s);font:600 13px/24px var(--mono);text-align:center;width:24px;height:24px;border-radius:50%;background:var(--accent-soft);color:var(--accent)}
+.warn{background:var(--fail-soft);border-radius:10px;padding:16px 18px;display:grid;gap:8px;align-content:start}
+.warn h2{color:var(--fail)}
+.warn ul{margin:0;padding-left:18px;display:grid;gap:6px;font-size:14px}
+footer{border-top:1px solid var(--rule);padding-top:14px;font-size:12.5px;color:var(--muted);display:grid;gap:4px}
+footer a{color:var(--accent)}
+</style>
+
+<div class="wrap">
+  <header style="display:grid;gap:14px">
+    <div class="eyebrow">Research summary · September 2026</div>
+    <h1>How Claude Code builds, checks, and fixes its own work</h1>
+    <p class="lead">The secret is not a smarter model. It is <b>a check Claude can run that says pass or fail</b>, plus <b>a rule that stops Claude from finishing until the check passes</b>. The human writes what the feature should do. Claude plans, builds, tests, fixes, and opens a PR.</p>
+    <p class="quote">"Give Claude a way to verify its work. If Claude has that feedback loop, it will 2–3x the quality of the final result."<cite>Boris Cherny, creator of Claude Code (his estimate, not a benchmark)</cite></p>
+  </header>
+
+  <section class="loop" aria-label="The loop">
+    <svg viewBox="0 30 900 172" role="img" aria-label="Feature request, plan, build, verify gate; fail goes back to build; pass goes to review and PR">
+      <defs>
+        <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="var(--muted)"/></marker>
+        <marker id="arf" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="var(--fail)"/></marker>
+        <marker id="arp" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="var(--accent)"/></marker>
+      </defs>
+      <g font-size="14" fill="var(--ink)">
+        <rect x="8" y="50" width="130" height="62" rx="8" fill="var(--ground)" stroke="var(--rule)"/>
+        <text x="73" y="77" text-anchor="middle" font-weight="600">You</text>
+        <text x="73" y="96" text-anchor="middle" font-size="12" fill="var(--muted)">feature + "done" rule</text>
+
+        <rect x="178" y="50" width="130" height="62" rx="8" fill="var(--panel)" stroke="var(--rule)"/>
+        <text x="243" y="77" text-anchor="middle" font-weight="600">Plan</text>
+        <text x="243" y="96" text-anchor="middle" font-size="12" fill="var(--muted)">spec, plan mode</text>
+
+        <rect x="348" y="50" width="130" height="62" rx="8" fill="var(--panel)" stroke="var(--rule)"/>
+        <text x="413" y="77" text-anchor="middle" font-weight="600">Build</text>
+        <text x="413" y="96" text-anchor="middle" font-size="12" fill="var(--muted)">edit + auto-format</text>
+
+        <path d="M580,40 L640,81 L580,122 L520,81 Z" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.5"/>
+        <text x="580" y="78" text-anchor="middle" font-weight="600" fill="var(--accent)">Verify</text>
+        <text x="580" y="95" text-anchor="middle" font-size="11" fill="var(--muted)">tests · app</text>
+
+        <rect x="680" y="50" width="100" height="62" rx="8" fill="var(--panel)" stroke="var(--rule)"/>
+        <text x="730" y="77" text-anchor="middle" font-weight="600">Review</text>
+        <text x="730" y="96" text-anchor="middle" font-size="12" fill="var(--muted)">2nd agent</text>
+
+        <rect x="812" y="50" width="80" height="62" rx="8" fill="var(--accent)" stroke="var(--accent)"/>
+        <text x="852" y="87" text-anchor="middle" font-weight="600" fill="var(--panel)">PR</text>
+      </g>
+      <g stroke="var(--muted)" stroke-width="1.5" fill="none">
+        <line x1="138" y1="81" x2="174" y2="81" marker-end="url(#ar)"/>
+        <line x1="308" y1="81" x2="344" y2="81" marker-end="url(#ar)"/>
+        <line x1="478" y1="81" x2="516" y2="81" marker-end="url(#ar)"/>
+        <line x1="640" y1="81" x2="676" y2="81" stroke="var(--accent)" marker-end="url(#arp)"/>
+        <line x1="780" y1="81" x2="808" y2="81" marker-end="url(#ar)"/>
+        <path d="M580,122 L580,160 L413,160 L413,116" stroke="var(--fail)" stroke-dasharray="5 4" marker-end="url(#arf)"/>
+        <path d="M730,112 L730,176 L440,176 L440,116" stroke="var(--fail)" stroke-dasharray="5 4" marker-end="url(#arf)"/>
+      </g>
+      <text x="498" y="154" font-size="12" fill="var(--fail)" text-anchor="middle">fail → Claude fixes it</text>
+      <text x="588" y="189" font-size="12" fill="var(--fail)" text-anchor="middle">problems found → fix</text>
+      <text x="658" y="72" font-size="12" fill="var(--accent)" text-anchor="middle">pass</text>
+    </svg>
+    <p class="cap">A Stop hook or <code>/goal</code> keeps Claude inside this loop. Claude cannot finish until the Verify step passes.</p>
+  </section>
+
+  <section style="display:grid;gap:12px">
+    <h2>The six parts of the setup</h2>
+    <div class="parts">
+      <div class="part"><span class="tag">Check · most important</span><h3>A pass/fail check</h3><p>Tests, typecheck, lint, or build exit code. Put the exact commands in <code>CLAUDE.md</code>. Ask Claude to show the command and its output as evidence.</p></div>
+      <div class="part"><span class="tag">Check</span><h3>Test the real app</h3><p>Unit tests are not enough. Claude starts the app and clicks through it with the Chrome extension or Playwright (browser automation). <code>/run-skill-generator</code> saves how to start your app as a skill.</p></div>
+      <div class="part"><span class="tag">Gate</span><h3>Do not stop until it passes</h3><p><code>/goal all tests pass and lint is clean, or stop after 20 turns</code>. Or a Stop hook (a script that runs when Claude tries to finish) that blocks while tests fail.</p></div>
+      <div class="part"><span class="tag">Second opinion</span><h3>A separate reviewer</h3><p>Agents rate their own work too kindly. Add a <code>verify-app</code> subagent and a reviewer subagent in <code>.claude/agents/</code>, or run <code>/code-review</code>. Tell it to report real bugs only.</p></div>
+      <div class="part"><span class="tag">Speed</span><h3>No permission prompts</h3><p>Auto mode (a safety classifier approves routine actions): <code>claude --permission-mode auto</code>. Add <code>/sandbox</code> to limit file and network access.</p></div>
+      <div class="part"><span class="tag">Scale</span><h3>Many sessions at once</h3><p>Boris runs 5 local sessions in separate git worktrees plus 5–10 web sessions. <code>/loop</code> fixes failed CI and review comments. Routines run jobs on a schedule or GitHub event.</p></div>
+    </div>
+  </section>
+
+  <div class="cols">
+    <section>
+      <h2>Start here: a setup you can copy</h2>
+      <ol class="steps">
+        <li><span>Write a short <code>CLAUDE.md</code> with your test, lint, and typecheck commands. Add a rule each time Claude makes a mistake.</span></li>
+        <li><span>Add a <b>PostToolUse hook</b> on <code>Edit|Write</code> that runs your formatter.</span></li>
+        <li><span>Run <code>/run-skill-generator</code> so Claude can start and use your app.</span></li>
+        <li><span>Add two subagents: <code>verify-app</code> (end-to-end test steps) and a reviewer.</span></li>
+        <li><span>Turn on auto mode and <code>/sandbox</code>.</span></li>
+        <li><span>For each feature: ask Claude to interview you and write <code>SPEC.md</code> with acceptance criteria. Then, in a fresh session, run <code>/goal &lt;criteria&gt; verified, tests pass</code>.</span></li>
+        <li><span>You review the evidence and the PR. Nothing else.</span></li>
+      </ol>
+    </section>
+    <aside class="warn">
+      <h2>Watch out</h2>
+      <ul>
+        <li><b>No check, no loop.</b> Without a real test, Claude "passes" by saying it is done.</li>
+        <li><b>Always set a limit</b> (max turns or iterations). Loops can run for hours.</li>
+        <li><b>Cost grows fast.</b> Anthropic's 3-agent app harness took 6 h and $200, against 20 min and $9 for one agent. The result was much better.</li>
+        <li><b>A reviewer can over-push.</b> If it reports style nits, Claude adds code it does not need.</li>
+        <li>Boris does <b>not</b> skip permissions. He uses auto mode and pre-approved safe commands.</li>
+      </ul>
+    </aside>
+  </div>
+
+  <footer>
+    <p>Sources: <a href="https://code.claude.com/docs/en/best-practices">Claude Code best practices</a> · <a href="https://code.claude.com/docs/en/goal">/goal docs</a> · <a href="https://code.claude.com/docs/en/hooks-guide">Hooks guide</a> · <a href="https://code.claude.com/docs/en/scheduled-tasks">Scheduled tasks</a> · <a href="https://www.anthropic.com/engineering/harness-design-long-running-apps">Anthropic: harness design for long-running apps (Mar 2026)</a> · <a href="https://x.com/bcherny/status/2007179850139000872">Boris Cherny's setup thread (Jan 2026)</a> · <a href="https://www.theneuron.ai/explainer-articles/claude-code-creators-boris-cherny-and-cat-wu-explain-how-to-use-agent-loops/">Boris Cherny &amp; Cat Wu on agent loops (Jun 2026)</a> · <a href="https://github.com/anthropics/claude-code/blob/main/plugins/ralph-wiggum/README.md">Ralph Wiggum loop plugin</a></p>
+    <p>Not fully confirmed: the "2–3x" figure is an estimate. Boris's April 2026 <code>/go</code> skill (test → simplify → PR) comes from a secondary summary only.</p>
+  </footer>
+</div>
