@@ -1,6 +1,6 @@
 # Sources
 
-Research done 13 Sep 2026.
+Research done 13 Sep 2026. Field test done 13–14 Sep 2026.
 
 | Claim | Source |
 |---|---|
@@ -21,6 +21,13 @@ Research done 13 Sep 2026.
 | `REVIEW.md` with passes for bugs, security, and compliance; "Important" reserved for broken behavior, leaked data, or a broken policy; at most five nits; deploy approval hook with exit code 2; `claude -p` in CI; tiered autonomy per environment; rollback as the most rehearsed path | Same playbook, stage 5 |
 | Maintain stage: a script invokes Claude when a control band is breached, and Claude writes its diagnosis as `intent.md`; Claude Tag; Claude Security; managed settings; source of truth options; measurement indicators | Same playbook, stage 6 and side sections |
 | `REVIEW.md` at the repo root tunes the managed Code Review service; severities Important, Nit, Pre-existing; a nit cap is a common rule; the local `/code-review` command does not read `REVIEW.md`; research preview for Team and Enterprise | https://code.claude.com/docs/en/code-review |
+| `claude --worktree` puts the worktree in `.claude/worktrees/<name>` and starts its branch from the current branch; `/exit` removes an unchanged worktree and its branch | Field test, `docs/field-tests/2026-09-13-shelf.md` (Claude Code 2.1.270) |
+| The plan approval dialog offers "Yes, and use auto mode", "Yes, manually approve edits", and "Tell Claude what to change"; both "Yes" options start coding; plan mode keeps its draft in `~/.claude/plans/` | Field test (Claude Code 2.1.270) |
+| Prompts that wait for a person: "Do you trust this folder?", "Teach auto mode about your environment?", "Allow reads outside the working directories?"; `/add-dir <folder>` offers "Yes, for this session" | Field test (Claude Code 2.1.270) |
+| A 37-minute `/goal` build counted as 1 turn; its status line showed 152.1k tokens while the transcript showed 454k output tokens; `verify-app` took about half of the build time | Field test (one run) |
+| A Stop hook that skips on a clean git tree checked nothing, because Claude committed before each stop; the test protection hook can lead Claude to a different API design | Field test (one run) |
+| `/loop` with `loop.md` did not code a comment that the spec did not cover, made the change after a spec update, sent push notifications, and stopped itself after the merge | Field test (one run) |
+| On Linux, `/sandbox` lists `bubblewrap` and `socat` as dependencies | Field test, `/sandbox` dialog on Claude Code 2.1.270 |
 | Planner / generator / evaluator harness; agents grade their own work too kindly; 6 h and $200 vs 20 min and $9 | https://www.anthropic.com/engineering/harness-design-long-running-apps (24 Mar 2026) |
 | Boris's setup: CLAUDE.md in git, slash commands, `code-simplifier` and `verify-app` subagents, PostToolUse format hook, `/permissions`, 2–3x quote | https://x.com/bcherny/status/2007179850139000872 (Jan 2026) |
 | Boris uses auto mode more than plan mode; Cat Wu's app-testing skill | https://www.theneuron.ai/explainer-articles/claude-code-creators-boris-cherny-and-cat-wu-explain-how-to-use-agent-loops/ (9 Jun 2026) |
@@ -33,5 +40,6 @@ Research done 13 Sep 2026.
 - The GitHub app install command: Boris's thread says `/install-github-action`; the docs may say `/install-github-app`. Not checked.
 - The playbook was read through a fetch tool that summarizes pages. Check these against the page: the exact list of measurement indicators, the product status labels for Claude Tag and Claude Security, and the permissions for the staging environment.
 - The managed settings keys `allowManagedHooksOnly` and `strictKnownMarketplaces` come from the playbook only. They are not on https://code.claude.com/docs/en/settings. They may be on the managed settings page. Not checked.
-- These choices are this guide's, not the playbook's: the `changes/<name>/` folder for each change, capital-letter file names, protecting only tests that exist on the base branch, and using the eval pass count as a measure.
+- These choices are this guide's, not the playbook's: the `changes/<name>/` folder for each change, capital-letter file names, protecting only tests that exist on the base branch, the content fingerprint in the Stop hook, and using the eval pass count as a measure.
 - The playbook says to add a rule after the same mistake happens twice. Boris's thread says to add a rule each time Claude does something wrong. This guide follows the playbook.
+- The field test numbers come from one change on one project, with Claude Code as the tester. They are an example, not an average.

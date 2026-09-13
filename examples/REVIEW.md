@@ -27,7 +27,7 @@ Report at most five Nits. Give the rest as a count.
 ## Do not report
 
 - Anything CI already checks: lint, formatting, and type errors.
-- Generated files under `generated/` and any lock file.
+- Generated files and any lock file. Example: files under `generated/`. Change this line to your project's folders.
 
 ## Always check
 

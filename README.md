@@ -2,7 +2,7 @@
 
 A setup guide. The goal: you describe a change, and Claude Code plans it, builds it, tests it, fixes its own mistakes, opens a PR, and looks after the PR until it is merged. You review each written step and merge the result.
 
-This repo holds the guide so we can review it, test it on real projects, and improve it.
+This repo holds the guide so we can review it, test it on real projects, and improve it. The first test on a real project is in [`docs/field-tests/2026-09-13-shelf.md`](docs/field-tests/2026-09-13-shelf.md).
 
 ## The main idea
 
@@ -29,7 +29,13 @@ This setup covers stages 1 to 5 inside one repo. It stops at the merge. It does 
 | 5. Deploy | A second agent reviews the change. Claude fixes CI failures and review comments | `reviewer` with `REVIEW.md`, then `/loop` | The PR and the review findings |
 | 6. Maintain | An alert, a ticket, or a schedule starts Claude without a person | **Not in this setup yet.** See "Later" below | — |
 
-Each change has its own folder, `changes/<name>/`, for its three files. So parallel sessions do not edit the same file.
+Each change has its own branch and its own folder, `changes/<name>/`, for its three files. So parallel sessions do not edit the same file.
+
+## Which work needs the full flow
+
+- **New behavior** (a new feature, or a change to how the app works): write `INTENT.md`, `SPEC.md`, and `PLAN.md` first.
+- **A bug fix** (the app does not do what it already should): skip the three files. Ask for a failing test that shows the bug, then the fix. `examples/README.md` has a short `/goal` condition for this.
+- **Runs with no person to answer**, such as evals: say in the prompt that no change folder is needed. Otherwise the "spec first" rule makes Claude write drafts and stop to ask.
 
 ## The loop
 
@@ -52,14 +58,14 @@ You + Claude:  INTENT.md → SPEC.md → PLAN.md    (you review and commit each 
 
 | Part | What it does | How to set it up |
 |---|---|---|
-| One file per step | You check each decision before Claude builds | `INTENT.md`, `SPEC.md`, and `PLAN.md` in `changes/<name>/`. Commit each file after you review it. |
+| One file per step | You check each decision before Claude builds | `INTENT.md`, `SPEC.md`, and `PLAN.md` in `changes/<name>/`, on a branch for the change. Commit each file after you review it. |
 | Team rules as skills | Claude follows the same rules in every spec and review | A skill (a folder with a `SKILL.md` file) in `.claude/skills/<name>/`. When a rule changes, change the skill. |
 | Pass/fail check | Claude knows if its work is correct | Put the build, test, lint, and typecheck commands in `CLAUDE.md`. Keep `CLAUDE.md` under one page. Ask Claude to show the command and its output. |
-| Test the real app | Catches bugs that unit tests miss | Run `/run-skill-generator` once. It saves how to start your app. Then `/run` and `/verify` use it. |
-| Do not stop until it passes | Claude keeps working until done, and cannot weaken old tests | `/goal` for the change, a Stop hook that runs the real tests, and a PreToolUse hook (a script that runs before each tool call) that blocks edits to old tests |
+| Test the real app | Catches bugs that unit tests miss | Run `/run-skill-generator` once. It saves how to start your app. Then `/run` and `/verify` use it. Keep screenshots inside the project, in a git-ignored folder. |
+| Do not stop until it passes | Claude keeps working until done, and cannot weaken old tests | `/goal` for the change, a Stop hook that runs the real tests when the code changed, and a PreToolUse hook (a script that runs before each tool call) that blocks edits to old tests |
 | Separate reviewer | Agents rate their own work too kindly | A reviewer subagent in `.claude/agents/` that follows `REVIEW.md`. Or `/code-review` |
 | No permission prompts | Claude runs without waiting for you | Auto mode: `claude --permission-mode auto`, plus `/sandbox` |
-| Many sessions at once | More work in parallel | `claude --worktree <name>` for each change. Start with 2–3 sessions. Also web sessions, `/loop`, and routines |
+| Many sessions at once | More work in parallel | `claude --worktree <name>` for each change, started from `main`. Add `.claude/worktrees/` to `.gitignore`. Start with 2–3 sessions. Also web sessions, `/loop`, and routines |
 
 ## Which loop for which step
 
@@ -68,7 +74,7 @@ A loop is Claude repeating work until a stop condition is met. Each step of a ch
 | Step | Kind of loop | Command | Next turn starts | Ends when |
 |---|---|---|---|---|
 | Write `INTENT.md` and `SPEC.md` | Turn-based | A normal prompt | You answer | You accept the file |
-| Write `PLAN.md` | Turn-based | `claude --permission-mode plan` | You answer | You approve the plan |
+| Write `PLAN.md` | Turn-based | `claude --permission-mode plan` | You answer | You approve the plan, and Claude saves it |
 | Build the change | Goal-based | `/goal <condition>` | Right away | A model confirms the condition is met |
 | After the PR | Time-based | `/loop` with `.claude/loop.md` | After a wait | The PR is merged or closed |
 | Later: recurring work | Proactive | `/schedule` + `/goal` | On a schedule | You stop the routine. **Not in this setup yet.** |
@@ -86,22 +92,31 @@ See [`examples/README.md`](examples/README.md) for the exact prompts, the `/goal
 
 Do these once for each project:
 
-1. Write a short `CLAUDE.md`. Put in the build, test, lint, and typecheck commands, the rules that matter, and the mistakes Claude keeps making. Keep it under one page. When Claude makes the same mistake twice, add a rule.
+1. Write a short `CLAUDE.md`. Put in the build, test, lint, and typecheck commands, which work needs a change folder, the rules that matter, and the mistakes Claude keeps making. Keep it under one page. When Claude makes the same mistake twice, add a rule.
 2. Add three hooks: one that formats each edited file (PostToolUse), one that blocks edits to old tests (PreToolUse), and one that runs the checks before Claude finishes (Stop).
-3. Run `/run-skill-generator` so Claude can start and use your app.
-4. Add two subagents: `verify-app` (end-to-end test steps) and `reviewer`. Write `REVIEW.md` to say what the reviewer reports.
-5. Write your team's rules as skills in `.claude/skills/`. For example: security rules for API code.
-6. Turn on auto mode and `/sandbox`.
-7. Collect real past tasks as evals (tests of your setup). Aim for 20–50 over time. Run them each time you change `CLAUDE.md`, a skill, a hook, or a subagent.
+3. Add `.claude/worktrees/`, `evals/results/`, and your screenshot folder to `.gitignore`. If your lint or test tools scan the whole repo, add the same folders and `evals/` to their ignore lists.
+4. Run `/run-skill-generator` so Claude can start and use your app. It can take more than 10 minutes. Before you commit the skill it writes, remove paths and ports that work only on your machine, and make it save screenshots inside the project.
+5. Add two subagents: `verify-app` (end-to-end test steps) and `reviewer`. Write `REVIEW.md` to say what the reviewer reports.
+6. Write your team's rules as skills in `.claude/skills/`. For example: security rules for API code.
+7. Turn on auto mode and `/sandbox`. On Linux, `/sandbox` needs `bubblewrap` and `socat`.
+8. Collect real past tasks as evals (tests of your setup). Aim for 20–50 over time. Run them each time you change `CLAUDE.md`, a skill, a hook, or a subagent.
 
 ## For each change
 
-1. Ask Claude to interview you and write `changes/<name>/INTENT.md`. Review it and commit it.
-2. Ask Claude to write `SPEC.md` from `INTENT.md`. Check that the spec solves the problem in `INTENT.md`. Commit it.
-3. In a new session in plan mode, ask Claude to plan the change. Change the plan until a person who has not seen the conversation could build the change from it. Save it as `PLAN.md` and commit it.
-4. In a new session, run `/goal` with the condition from `examples/README.md`. Claude builds, checks, reviews, and opens a PR.
-5. In another new session, run `/loop`. It follows `.claude/loop.md`: it fixes failed CI and review comments until the PR is merged.
-6. Review the evidence and merge the PR.
+1. Create a branch for the change from `main`.
+2. Ask Claude to interview you and write `changes/<name>/INTENT.md`. Review it and commit it.
+3. Ask Claude to write `SPEC.md` from `INTENT.md`. Review it with the checklist below, and commit it.
+4. In a new session in plan mode, ask Claude to plan the change. Change the plan until a person who has not seen the conversation could build the change from it. When Claude asks "Would you like to proceed?", choose **Tell Claude what to change** and type "Save the plan as changes/<name>/PLAN.md and stop. Do not write any code." Both "Yes" options start coding at once. Review `PLAN.md` and commit it.
+5. In a new session, run `/goal` with the condition from `examples/README.md`. Claude builds, checks, reviews, and opens a PR. If Claude saves screenshots outside the project, run `/add-dir <folder>` before `/goal`.
+6. In another new session, run `/loop`. It follows `.claude/loop.md`: it fixes failed CI and review comments until the PR is merged.
+7. Review the evidence and merge the PR. The loop sees the merge and stops.
+
+Review checklist for `INTENT.md`, `SPEC.md`, and `PLAN.md`:
+
+- Every answer you gave in the interview is in the file.
+- The scope is what you asked for, and "Out of scope" lists what you do not want.
+- Numbers, limits, and texts are right. Check a few facts against the code, such as file names and line numbers.
+- Each acceptance criterion is something a test or a person can check.
 
 ## Measure it
 
@@ -113,18 +128,24 @@ The playbook lists numbers to track. These fit one repo:
 - Bugs found before the merge, compared with bugs found after the merge.
 - The eval pass count after each change to your setup. This one is this guide's addition.
 
+Measure tokens from the session transcripts in `~/.claude/projects/`. In the field test, the number in the `/goal` status line was much lower than the transcript.
+
 ## Watch out
 
 - **No check, no loop.** Without a real test, Claude "passes" by saying it is done.
-- **Always set a limit** on turns or loops. In `/goal`, "stop after 30 turns" is judged by a model, not enforced. Check it with `/goal`. Stop it with `/goal clear`.
+- **A turn limit does not limit a build.** In the field test, a 37-minute build counted as one turn, so "stop after 30 turns" did nothing. Watch the time. Run `/goal` to see progress, and `/goal clear` to stop.
 - **The `/goal` judge cannot see files.** It only reads the conversation. Ask Claude to print the evidence in its last message.
 - **Claude cannot start `/verify` on its own.** Use the `verify-app` subagent inside `/goal` and `/loop`.
+- **Some prompts wait for a person, even in auto mode.** "Do you trust this folder?" appears in a new folder. "Teach auto mode about your environment?" appears after the first auto mode turn. "Allow reads outside the working directories?" appears when Claude opens a file outside the project, such as a screenshot in `/tmp`. Answer them before you leave a run alone.
+- **Do not press Enter on a suggested reply.** Claude Code sometimes puts a reply in the input box that you did not type. It can be wrong.
 - **The test hook only covers file edit tools.** Claude could still change a test with a shell command, or change the hook script. `REVIEW.md` tells the reviewer to check for both.
+- **The test hook can shape the design.** In the field test, an old test compared the whole stats response, so Claude added a new API route instead of new fields. If a spec changes an old contract on purpose, start Claude with `ALLOW_TEST_EDITS=1`.
 - **`/code-review` does not read `REVIEW.md`.** Only the `reviewer` subagent and the managed Code Review service read it.
 - **Add sessions only while you can review them.** The playbook suggests 2–3 sessions to start. The limit is how many PRs one person can review properly.
 - **Keep approval prompts out of the build.** A hook that waits for a person belongs at a deploy gate. During the build, it makes Claude wait for you.
-- **Cost adds up.** Anthropic's 3-agent test took 6 hours and $200. One agent took 20 minutes and $9, but its result was worse. Each `/loop` check and each eval task also costs tokens.
+- **Cost adds up.** Anthropic's 3-agent test took 6 hours and $200. One agent took 20 minutes and $9, but its result was worse. In the field test, one feature took a 37-minute build with 454k output tokens, and the browser check (`verify-app`) used about half of that time. Each `/loop` check and each eval task also costs tokens.
 - **A reviewer can push too hard.** If it reports style issues, Claude adds code it does not need. `REVIEW.md` limits nits to five.
+- **Pushing a change to a CI workflow file needs the `workflow` scope** for `gh`. If `gh auth refresh -s workflow` does not add it, use an SSH remote.
 - Boris does **not** skip permissions. He uses auto mode and pre-approved safe commands.
 
 ## Later: team and enterprise parts
@@ -146,7 +167,8 @@ The playbook also describes parts that need more than one repo. They are not in 
 - [`docs/summary.html`](docs/summary.html): the one-page visual summary
 - [`docs/sources.md`](docs/sources.md): where each claim comes from
 - [`docs/open-questions.md`](docs/open-questions.md): things to check and improve
+- [`docs/field-tests/`](docs/field-tests/): reports from tests of this guide on real projects
 
 ## Status
 
-Second draft, 13 Sep 2026. Adds the stages from Anthropic's AI-native SDLC playbook. Not yet tested on a real project.
+Third draft, 14 Sep 2026. Tested once on a real project, and the fixes from that test are applied. See `docs/field-tests/2026-09-13-shelf.md`.

@@ -6,12 +6,18 @@
 #   base       the commit to start from: the commit before the real change
 #   prompt.md  the request, as a person gave it
 #   check.sh   exits 0 if the result is correct. It runs inside the task's worktree.
+# A task folder can also hold files for check.sh, such as a hidden test.
 # The script skips folders whose names start with "_".
+#
+# Do not create branches in this repo while the script runs. It deletes every branch that appears during a task.
 #
 # Usage: evals/run-evals.sh [task-name ...]
 
 # A command to run in each worktree before Claude starts. Example: SETUP_CMD="npm ci"
 SETUP_CMD="${SETUP_CMD:-}"
+
+# Added before each prompt. Without it, a "spec first" rule in CLAUDE.md can make Claude stop and ask a question.
+EVAL_NOTE="${EVAL_NOTE:-This is an eval task. No change folder (INTENT.md, SPEC.md, PLAN.md) is needed. Work on the current detached HEAD. Do not create a branch, commit, push, or open a pull request.}"
 
 # The Claude Code command. Change it only to test this script.
 CLAUDE_BIN="${CLAUDE_BIN:-claude}"
@@ -20,6 +26,8 @@ root=$(git rev-parse --show-toplevel) || exit 1
 tasks_dir="$root/evals/tasks"
 results_dir="$root/evals/results/$(date +%Y%m%d-%H%M%S)"
 mkdir -p "$results_dir" || exit 1
+
+branches() { git -C "$root" for-each-ref --format='%(refname:short)' refs/heads | sort; }
 
 names=("$@")
 if [ "$#" -eq 0 ]; then
@@ -58,12 +66,19 @@ for name in "${names[@]}"; do
     [ -f "$root/$f" ] && cp "$root/$f" "$wt/$f"
   done
 
+  # Commit the copied setup files in the worktree, so git is clean when Claude starts.
+  git -C "$wt" add -A >/dev/null 2>&1
+  git -C "$wt" -c user.name=eval -c user.email=eval@localhost commit -q -m "eval: current setup" >/dev/null 2>&1
+
+  before=$(branches)
   (
     cd "$wt" || exit 1
     if [ -n "$SETUP_CMD" ]; then
       bash -c "$SETUP_CMD" || exit 1
     fi
-    "$CLAUDE_BIN" -p "$(cat "$task/prompt.md")" --permission-mode auto
+    "$CLAUDE_BIN" -p "$EVAL_NOTE
+
+$(cat "$task/prompt.md")" --permission-mode auto
   ) >>"$log" 2>&1
 
   if (cd "$wt" && bash "$task/check.sh") >>"$log" 2>&1; then
@@ -75,6 +90,11 @@ for name in "${names[@]}"; do
 
   git -C "$root" worktree remove --force "$wt" >/dev/null 2>&1 || rm -rf "$wt"
   git -C "$root" worktree prune
+
+  # Delete the branches that appeared during this task.
+  for b in $(comm -13 <(printf '%s\n' "$before") <(branches)); do
+    git -C "$root" branch -D "$b" >/dev/null 2>&1 && echo "Deleted branch $b, created during the task." >>"$log"
+  done
 done
 
 echo "$pass of $total tasks passed" | tee "$results_dir/summary.txt"

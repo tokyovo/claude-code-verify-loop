@@ -19,12 +19,13 @@ Each time this runs:
    - If you disagree with a comment, do not change the code and do not reply on GitHub. List it in your message with your reason, so a person can decide.
 4. If you changed code, run `npm run lint && npm run typecheck && npm test` and show the output. Commit and push only if it passes.
 5. If CI is green and there are no new comments, say "PR is quiet" in one line and wait longer before the next check.
+6. When the PR first becomes ready for a person to review, and when you stop the loop, send a short push notification if you can.
 
 Rules:
 
 - Work only on this PR. Do not start new features, refactors, or cleanups.
 - Fix the code, not the tests. Do not change a test that existed before this branch.
-- If a comment asks for a change that `changes/<name>/SPEC.md` does not cover, do not make it. List it for a person.
+- If a comment asks for a change that `changes/<name>/SPEC.md` does not cover, do not make it. List it for a person. When a person updates `SPEC.md`, make the change on the next check.
 - Never push to `main`. Never force-push.
 - Do not merge the PR. A person merges it.
 - If the same CI failure comes back after 3 fixes, stop the loop and explain what you tried.

@@ -1,8 +1,8 @@
 # INTENT: <change name>
 
 <!--
-Template for stage 1 (Plan). To fill it in, start Claude and say:
-"Interview me about <idea>. Ask one question at a time. Then copy changes/_template/ to changes/<name>/ and fill in INTENT.md."
+Template for stage 1 (Plan). First create a branch for the change from main. Then start Claude and say:
+"Interview me about <idea>. Ask one question at a time. Then create changes/<name>/, copy only changes/_template/INTENT.md into it, and fill it in."
 Read it. Change it until it says what you mean. Then commit it.
 Do not describe the code here. SPEC.md and PLAN.md come next.
 -->
