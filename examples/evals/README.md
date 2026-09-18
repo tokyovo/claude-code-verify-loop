@@ -39,7 +39,7 @@ SETUP_CMD="npm ci" evals/run-evals.sh  # install dependencies first
 For each task, the script does these steps:
 
 1. It creates a git worktree at the `base` commit. A worktree is a second checkout of the repo in another folder.
-2. It copies your current `CLAUDE.md`, `REVIEW.md`, and `.claude/` into the worktree, and commits them there. So it tests your new setup on the old code, and git is clean when Claude starts.
+2. It copies your current `CLAUDE.md`, `REVIEW.md`, and `.claude/` into the worktree, adds your current `.gitignore` lines, and commits them there. So it tests your new setup on the old code, and git is clean when Claude starts. The `.gitignore` lines matter: without them, screenshots from `verify-app` count as changes, and the Stop hook runs the checks again at every stop.
 3. It runs `SETUP_CMD`, if you set one.
 4. It runs `claude -p` in auto mode with `EVAL_NOTE` and the prompt. `-p` runs Claude once, without a session you type into. `EVAL_NOTE` says that no change folder is needed and that Claude must not create a branch, commit, or open a PR.
 5. It runs `check.sh` in the worktree.

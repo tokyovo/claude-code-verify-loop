@@ -16,7 +16,7 @@ A written guide, not an app. It explains how to set up a "verify loop" in Claude
 ## `examples/` is a template, not config for this repo
 
 - `examples/CLAUDE.md` and `examples/REVIEW.md` are samples for other projects. Do not treat their rules or `npm` commands as rules for this repo.
-- `examples/.claude/` (hooks, subagents, skills, settings) is not active here. Claude Code only loads `.claude/` from the project root.
+- `examples/.claude/` (hooks, subagents, skills, settings) is not config for this repo. Claude Code reads settings and hooks from the `.claude/` folder at the project root. It can still offer the sample skill in `examples/.claude/skills/` when you work on files under `examples/` (seen on 18 Sep 2026). Do not follow that skill as a rule for this repo.
 
 ## Checks
 
@@ -66,7 +66,7 @@ The same facts appear in several places. When you change one, update the others.
 - **The plan approval choice** ("Tell Claude what to change", then "Save the plan as changes/<name>/PLAN.md and stop. Do not write any code.") is in `README.md`, `docs/summary.html`, `examples/README.md`, and `examples/changes/_template/PLAN.md`.
 - **The `.gitignore` lines** (`.claude/worktrees/`, `evals/results/`, the screenshot folder) are in `README.md`, `docs/summary.html`, and `examples/README.md`.
 - **The hook behavior** is described in `examples/README.md`. Stop hook: a content fingerprint of the working tree; skip when it matches the last pass or when only `DOCS_PATTERN` files changed; compare with the base branch before the first pass; exit code 2 blocks; `MAX_BLOCKS` default 5; last 40 lines of output. Test protection hook: blocks tests that exist on `BASE_REF`, allows new test files, `ALLOW_TEST_EDITS=1` turns it off.
-- **The eval runner behavior** (setup commit, `EVAL_NOTE`, branch cleanup) is in the script header and `examples/evals/README.md`.
+- **The eval runner behavior** (copied setup and `.gitignore` lines, setup commit, `EVAL_NOTE`, branch cleanup) is in the script and `examples/evals/README.md`.
 - **The file tree** in `examples/README.md` must match the real files.
 - **Measured numbers** from a field test (for example, 37 minutes, 454k output tokens) must match the report in `docs/field-tests/`.
 

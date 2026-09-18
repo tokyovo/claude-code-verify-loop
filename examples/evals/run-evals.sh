@@ -65,6 +65,9 @@ for name in "${names[@]}"; do
   for f in CLAUDE.md REVIEW.md; do
     [ -f "$root/$f" ] && cp "$root/$f" "$wt/$f"
   done
+  # Add your current ignore lines too. Otherwise check output, such as screenshots, is not ignored
+  # at the old commit, and the Stop hook sees a change and runs the checks again at every stop.
+  [ -f "$root/.gitignore" ] && cat "$root/.gitignore" >>"$wt/.gitignore"
 
   # Commit the copied setup files in the worktree, so git is clean when Claude starts.
   git -C "$wt" add -A >/dev/null 2>&1
