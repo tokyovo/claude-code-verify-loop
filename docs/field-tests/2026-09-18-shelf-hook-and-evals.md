@@ -61,7 +61,7 @@ In each task, the main session stopped 5 times: 4 stops while its subagents ran 
 
 - The cause: `verify-app` wrote screenshots to `.shelf-run/` and browser state to `.gstack/`. The eval worktree is at the old `base` commit, and its `.gitignore` did not list either folder. So each new screenshot changed the hook's fingerprint, and the hook ran the checks again.
 - The cost: about 1 minute of each 3.5-minute task.
-- The fix, applied to `run-evals.sh`: add the current `.gitignore` lines to the worktree before the setup commit. A stub test confirmed it: after the stub wrote files to `.shelf-run/` and `.gstack/`, `git status` in the eval worktree was still clean. The fix has not run with real Claude yet.
+- The fix, applied to `run-evals.sh`: add the current `.gitignore` lines to the worktree before the setup commit. A stub test confirmed it: after the stub wrote files to `.shelf-run/` and `.gstack/`, `git status` in the eval worktree was still clean. Test 4 confirms it with real Claude.
 - In a normal session, the project's own `.gitignore` lists the screenshot folder. That is why the setup steps say to add it.
 
 ## Test 3: a bug fix with the short `/goal` condition
@@ -88,9 +88,26 @@ The checks ran once, when they were needed. shelf's own `.gitignore` lists `.she
 
 The input box showed a suggested reply once more ("open the PR once verify-app finishes"). PR #2 is left open for a person to merge.
 
+## Test 4: eval runner with the `.gitignore` fix
+
+The runner from guide commit `96b2865`, copied to shelf as `e9e019d`. The same two tasks and command as Test 2.
+
+| | Test 2 (before the fix) | Test 4 (after the fix) |
+|---|---|---|
+| Result | 2 of 2 passed | 2 of 2 passed |
+| Time for both tasks | 416 s | 269 s |
+| `pages-limit` Stop hook runs | 5 stops: 4 check runs of 14–17 s, then a skip | 1 stop: 1 check run of 3.7 s |
+| `search-case` Stop hook runs | 5 stops: 4 check runs of 15–17 s, then a skip | 5 stops: 1 check run of 4.0 s, then 4 skips of 14–55 ms |
+| Output tokens, main session + subagents | 25k and 21k | 22k (`search-case`) and 22k (`pages-limit`) |
+| Branches and worktrees left | none | none |
+
+- **The fix worked.** The Stop hook ran the checks once in each task, when the code had changed. Screenshots and browser logs no longer counted as changes.
+- Each check run was also faster: about 4 s instead of 15 s. This report does not know why. One possible cause is less load on the machine, because the browser check no longer ran at the same time as the checks.
+- In `pages-limit`, the main session stopped only once. In Test 2 it stopped 5 times. The number of stops depends on how Claude waits for its subagents, and it can change from run to run.
+
 ## Summary
 
 - **The new Stop hook works in live sessions.** It blocked committed code that failed lint, which the old hook let through. It skipped document-only changes and unchanged content in 46–107 ms.
 - **The new eval runner works.** Both tasks passed, including the one that failed before. No branches were left behind.
-- **One new problem, fixed:** in eval worktrees, check output was not ignored, so the hook ran the checks at almost every stop. `run-evals.sh` now adds the current `.gitignore` lines. This fix is tested only with a stub.
+- **One new problem, fixed:** in eval worktrees, check output was not ignored, so the hook ran the checks at almost every stop. `run-evals.sh` now adds the current `.gitignore` lines. With real Claude, the hook then ran the checks once per task, and the eval run took 269 s instead of 416 s.
 - **The bug-fix flow works.** One sentence of context and a short `/goal` condition gave a correct, tested PR in 5.5 minutes.

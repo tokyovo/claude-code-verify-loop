@@ -26,10 +26,10 @@ Things to check and improve in the guide.
 - [x] Check that `/loop` with `loop.md` stops on its own after the PR is merged. Field test: yes, on the first check after the merge.
 - [x] Record the token cost of `/loop` while the PR is quiet. Field test: the check after the merge took 23 s. Three checks over 66 minutes used 51k output tokens and 5.8M cache-read tokens.
 - [x] Check that `protect-tests.sh` blocks a real edit to an old test, and allows a new test file. Field test: blocked in a live session. The build added 4 new test files with no block.
-- [ ] Run `evals/run-evals.sh` with 3 real tasks. Record time, cost, and whether the results repeat. So far: 2 tasks, run twice. `search-case` passed both times. `pages-limit` failed with the old runner and passed with the new one.
+- [ ] Run `evals/run-evals.sh` with 3 real tasks. Record time, cost, and whether the results repeat. So far: 2 tasks, run three times. `search-case` passed all 3 times. `pages-limit` failed with the old runner and passed both times with the new one.
 - [x] Run the new Stop hook (content fingerprint) in a live session. Done on 18 Sep 2026: it blocked committed code that failed lint, and it skipped document-only changes. See `docs/field-tests/2026-09-18-shelf-hook-and-evals.md`.
 - [x] Run the new eval runner (`EVAL_NOTE`, setup commit, branch cleanup) with real Claude. Done on 18 Sep 2026: 2 of 2 passed, no branches left.
-- [ ] Run the eval runner with its `.gitignore` fix and real Claude. Check that the Stop hook runs the checks only when the code changed.
+- [x] Run the eval runner with its `.gitignore` fix and real Claude. Check that the Stop hook runs the checks only when the code changed. Done on 18 Sep 2026: one check run per task, and the run took 269 s instead of 416 s.
 - [x] Run a bug fix with the short `/goal` condition in `examples/README.md`. Done on 18 Sep 2026: PR #2 on shelf in 5.5 minutes.
 
 ## To add
